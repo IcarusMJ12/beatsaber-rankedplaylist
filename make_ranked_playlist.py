@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 
 from urllib import request
+from urllib.error import HTTPError
 from xml.etree import ElementTree
 import json
 import sys
 import time
+
+
+RANKED_JSON = 'v2-all.json'
+RANKED_TS = 'v2-all.ts'
 
 
 def main():
@@ -15,10 +20,29 @@ def main():
     sys.exit(1)
 
   songs = []
-
-  # 'https://cdn.wes.cloud/beatstar/bssb/v2-all.json'
   difficulties = None
-  with open('v2-all.json', 'r') as f:
+
+  # host doesn't like python's User-Agent
+  headers = {'User-Agent': 'curl/7.74.0'}
+  try:
+    with open(RANKED_TS, 'r') as f:
+      headers['If-Modified-Since'] = f.read()
+  except FileNotFoundError:
+    pass
+  req = request.Request(f'https://cdn.wes.cloud/beatstar/bssb/{RANKED_JSON}',
+                        headers=headers)
+  try:
+    with request.urlopen(req) as response:
+      body = response.read()
+      with open(RANKED_JSON, 'wb') as f:
+        f.write(body)
+      with open(RANKED_TS, 'w') as f:
+        f.write(response.headers['Last-Modified'])
+  except HTTPError as e:
+    if e.code != 304:
+      raise
+
+  with open(RANKED_JSON, 'r') as f:
     difficulties = json.load(f)
 
   url = f'https://bsaber.com/members/{sys.argv[1]}/bookmarks/feed/?acpage='
@@ -51,9 +75,10 @@ def main():
 
   songs.sort()
 
-  songs = [{'hash': item[3], 'songName': f'{item[0]}★ [{item[1]}] {item[2]}'}
+  songs = [{'hash': item[3], 'songName': f'{item[0]}★ {item[2]}',
+            'difficulties': [{'characteristic': 'Standard', 'name': item[1]}]}
            for item in songs]
-  playlist = {'playlistTitle': 'Ranked', 'playlistAuthor': 'You',
+  playlist = {'playlistTitle': 'Ranked', 'playlistAuthor': 'You ;)',
               'image': '', 'songs': songs}
   with open('ranked.json', 'w') as f:
     json.dump(playlist, f)
