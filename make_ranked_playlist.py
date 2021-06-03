@@ -19,7 +19,8 @@ def main():
     print(f'\t{sys.argv[0]} <bsaber-username>', file=sys.stderr)
     sys.exit(1)
 
-  songs = []
+  songs = set()
+  titles = {}
   difficulties = None
 
   # host doesn't like python's User-Agent
@@ -66,16 +67,17 @@ def main():
       if len(diffs) == 0:
         continue
       for diff in diffs:
-        songs.append((float(diff['star']), diff['diff'], title, hash_))
+        songs.add((float(diff['star']), diff['diff'], hash_))
+        titles[hash_] = title
 
     if done:
       break
     page += 1
     time.sleep(0.5)
 
-  songs.sort()
+  songs = sorted(songs)
 
-  songs = [{'hash': item[3], 'songName': f'{item[0]}★ {item[2]}',
+  songs = [{'hash': item[2], 'songName': titles[item[2]],
             'difficulties': [{'characteristic': 'Standard', 'name': item[1]}]}
            for item in songs]
   playlist = {'playlistTitle': 'Ranked', 'playlistAuthor': 'You ;)',
