@@ -32,6 +32,7 @@ def main():
     pass
   req = request.Request(f'https://cdn.wes.cloud/beatstar/bssb/{RANKED_JSON}',
                         headers=headers)
+  print("Requesting list of ranked maps...")
   try:
     with request.urlopen(req) as response:
       body = response.read()
@@ -49,6 +50,7 @@ def main():
   url = f'https://bsaber.com/members/{sys.argv[1]}/bookmarks/feed/?acpage='
   page = 0
   while True:
+    print(f"Requesting page {page + 1} of bsaber bookmarks...")
     tree = ElementTree.parse(request.urlopen(url + str(page)))
     done = True
     for item in tree.getroot().findall('channel/item'):
@@ -75,6 +77,10 @@ def main():
     page += 1
     time.sleep(0.5)
 
+  if not len(songs):
+    print(f"No bookmarks found for `{sys.argv[1]}`!  Aborting.", file=sys.stderr)
+    sys.exit(1)
+  print("Generating playlist...")
   songs = sorted(songs)
 
   songs = [{'hash': item[2], 'songName': titles[item[2]],
@@ -84,6 +90,7 @@ def main():
               'image': '', 'songs': songs}
   with open('ranked.json', 'w') as f:
     json.dump(playlist, f)
+  print("Done!")
 
 
 if __name__ == '__main__':
