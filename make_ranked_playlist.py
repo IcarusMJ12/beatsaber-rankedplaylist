@@ -16,12 +16,13 @@ def main():
   # kind of ghetto but probably not worth using argparse for just one parameter
   if len(sys.argv) < 2:
     print("Usage:", file=sys.stderr)
-    print(f'\t{sys.argv[0]} <bsaber-username>', file=sys.stderr)
+    print(f'\t{sys.argv[0]} <bsaber-username> [<count>]', file=sys.stderr)
     sys.exit(1)
 
   songs = set()
   titles = {}
   difficulties = None
+  count = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 
   # host doesn't like python's User-Agent
   headers = {'User-Agent': 'curl/7.74.0'}
@@ -78,18 +79,21 @@ def main():
     time.sleep(0.5)
 
   if not len(songs):
-    print(f"No bookmarks found for `{sys.argv[1]}`!  Aborting.", file=sys.stderr)
+    print(f"No bookmarks found for `{sys.argv[1]}`!  Aborting.",
+          file=sys.stderr)
     sys.exit(1)
-  print("Generating playlist...")
+  print("Generating playlist(s)...")
   songs = sorted(songs)
 
   songs = [{'hash': item[2], 'songName': titles[item[2]],
             'difficulties': [{'characteristic': 'Standard', 'name': item[1]}]}
            for item in songs]
-  playlist = {'playlistTitle': 'Ranked', 'playlistAuthor': 'You ;)',
-              'image': '', 'songs': songs}
-  with open('ranked.json', 'w') as f:
-    json.dump(playlist, f)
+  for i in range(count):
+    playlist = {'playlistTitle': f'{i + 1}',
+                'playlistAuthor': f'{sys.argv[1]}',
+                'image': '', 'songs': songs[i::count]}
+    with open(f'{i + 1}.json', 'w') as f:
+      json.dump(playlist, f)
   print("Done!")
 
 
