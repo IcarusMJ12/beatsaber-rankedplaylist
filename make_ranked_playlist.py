@@ -15,7 +15,7 @@ RANKED_TS = 'v2-all.ts'
 def main():
   # kind of ghetto but probably not worth using argparse for just one parameter
   if len(sys.argv) < 2:
-    print("Usage:", file=sys.stderr)
+    print('Usage:', file=sys.stderr)
     print(f'\t{sys.argv[0]} <bsaber-username> [<count>]', file=sys.stderr)
     sys.exit(1)
 
@@ -33,7 +33,7 @@ def main():
     pass
   req = request.Request(f'https://cdn.wes.cloud/beatstar/bssb/{RANKED_JSON}',
                         headers=headers)
-  print("Requesting list of ranked maps...")
+  print('Requesting list of ranked maps...')
   try:
     with request.urlopen(req) as response:
       body = response.read()
@@ -51,7 +51,7 @@ def main():
   url = f'https://bsaber.com/members/{sys.argv[1]}/bookmarks/feed/?acpage='
   page = 0
   while True:
-    print(f"Requesting page {page + 1} of bsaber bookmarks...")
+    print(f'Requesting page {page + 1} of bsaber bookmarks...')
     tree = ElementTree.parse(request.urlopen(url + str(page)))
     done = True
     for item in tree.getroot().findall('channel/item'):
@@ -79,22 +79,23 @@ def main():
     time.sleep(0.5)
 
   if not len(songs):
-    print(f"No bookmarks found for `{sys.argv[1]}`!  Aborting.",
+    print(f'No bookmarks found for `{sys.argv[1]}`!  Aborting.',
           file=sys.stderr)
     sys.exit(1)
-  print("Generating playlist(s)...")
+  print('Generating playlist(s)...')
   songs = sorted(songs)
 
   songs = [{'hash': item[2], 'songName': titles[item[2]],
             'difficulties': [{'characteristic': 'Standard', 'name': item[1]}]}
            for item in songs]
+  print(f'{len(songs)} songs found.')
   for i in range(count):
     playlist = {'playlistTitle': f'{i + 1}',
                 'playlistAuthor': f'{sys.argv[1]}',
                 'image': '', 'songs': songs[i::count]}
     with open(f'{i + 1}.json', 'w') as f:
       json.dump(playlist, f)
-  print("Done!")
+  print('Done!')
 
 
 if __name__ == '__main__':
