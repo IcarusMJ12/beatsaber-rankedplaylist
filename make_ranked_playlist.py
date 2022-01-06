@@ -70,6 +70,8 @@ def main():
       if len(diffs) == 0:
         continue
       for diff in diffs:
+        if diff['diff'] == 'Expert+':
+          diff['diff'] = 'ExpertPlus'
         songs.add((float(diff['star']), diff['diff'], hash_))
         titles[hash_] = title
 
@@ -89,11 +91,12 @@ def main():
             'difficulties': [{'characteristic': 'Standard', 'name': item[1]}]}
            for item in songs]
   print(f'{len(songs)} songs found.')
+  padding = len(str(count))
   for i in range(count):
-    playlist = {'playlistTitle': f'{i + 1}',
+    playlist = {'playlistTitle': f'{i + 1:0{padding}}/{count}',
                 'playlistAuthor': f'{sys.argv[1]}',
                 'image': '', 'songs': songs[i::count]}
-    with open(f'{i + 1}.json', 'w') as f:
+    with open(f'{i + 1:0{padding}}.json', 'w') as f:
       json.dump(playlist, f)
   print('Done!')
 
