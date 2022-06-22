@@ -2,11 +2,11 @@
 
 from urllib import request
 from urllib.error import HTTPError
-from xml.etree import ElementTree
 import json
 import sys
 import time
 
+from bs4 import BeautifulSoup
 
 RANKED_JSON = 'v2-all.json'
 RANKED_TS = 'v2-all.ts'
@@ -48,20 +48,20 @@ def main():
   with open(RANKED_JSON, 'r') as f:
     difficulties = json.load(f)
 
-  url = f'https://bsaber.com/members/{sys.argv[1]}/bookmarks/feed/?acpage='
-  page = 0
+  url = 'https://bsaber.com/songs/new/page/{}/?bookmarked_by=megawidget'
+  page = 1
   while True:
-    print(f'Requesting page {page + 1} of bsaber bookmarks...')
-    tree = ElementTree.parse(request.urlopen(url + str(page)))
+    print(f'Requesting page {page} of bsaber bookmarks...')
+    soup = BeautifulSoup(request.urlopen(url.format(page)))
     done = True
-    for item in tree.getroot().findall('channel/item'):
+    for article in soup.find_all('article'):
       done = False
-      title, hash_, diffs = None, None, None
-      for child in item:
-        if child.tag == 'SongTitle':
-          title = child.text
-        if child.tag == 'Hash':
-          hash_ = child.text.upper()
+      diffs = []
+      title = article.a['title']
+      preview = article.find('a', {'class': 'js-listen'})['onclick']
+      # "previewSong(this, 'https://cdn.beatsaver.com/a150af96db9a68176175c99e3e5dfef599dd89b8.mp3')"
+      hash_ = preview.split('/')[-1].split('.')[0].upper()
+      print((title, hash_))
       try:
         diffs = [diff for diff in difficulties[hash_]['diffs']
                  if float(diff['star']) > 0]
