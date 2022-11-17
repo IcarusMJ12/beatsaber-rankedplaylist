@@ -48,7 +48,7 @@ def main():
   with open(RANKED_JSON, 'r') as f:
     difficulties = json.load(f)
 
-  url = 'https://bsaber.com/songs/new/page/{}/?bookmarked_by=megawidget'
+  url = 'https://bsaber.com/songs/new/page/{}/?bookmarked_by=' + sys.argv[1]
   page = 1
   while True:
     print(f'Requesting page {page} of bsaber bookmarks...')
